@@ -1,0 +1,187 @@
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <style>
+        #main{
+            width:750px;
+            margin:20px auto;
+        }
+        #main p{
+            text-align:center;
+            font-size:25px;
+            font-weight:bold;
+            margin-button:100px;
+        }
+        .search{
+            text-align:center;}
+        .input{
+            width:540px;
+            height:40px;}
+        .btn{
+            border:0;
+            width:100px;
+            height:40px;
+            background:#36F;
+            font-size:15px;
+            color:#fff;}
+    </style>
+    <title>search</title>
+    <script src="https://code.jquery.com/jquery-1.9.1.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            let str = GetUrlPara();
+            let nowPage = 0;
+            $("#up").hide();
+            $("#down").hide();
+
+            //获取请求参数
+            function GetUrlPara() {
+                let url = document.location.toString();
+                let arrUrl = url.split("?");
+                let para = arrUrl[1];
+                para = para.split("&");
+                let p0 = para[0].split("=");
+                if ( p0[0] === "q" ) {
+                    return p0[1];
+                }
+                return "";
+            }
+            //ajax获取搜索值
+            function Search(query, page) {
+                query = decodeURIComponent(query);
+                let urls = "http://s.mempool.pub:9001/s?q=" + query + "&p=" + page;
+                $("#tit").html("--> " + decodeURIComponent(query));
+                $("#text").attr("value", decodeURIComponent(query));
+                urls = urls.replace(/[ ]/g,'_');
+                console.log(urls);
+                $.ajax({
+                    type: "GET",
+                    url: urls,
+                    dataType: "json",
+                    success: function (data) {
+                        $("#loading").hide();
+                        let str1 = '<div class="row"><div class="panel panel-default"><div class="panel-body"><p><h3><a href="';
+                        let str2 = '">';
+                        let str3 = '</a></h3></p><p>';
+                        let str4 = '</p><p><a href="';
+                        let str5 = '">';
+                        let str6 = '</a></p></div></div></div>';
+                        let all = '';
+                        for (let j = 0; j < data["items"].length; j++) {
+                            all = all + str1 + data["items"][j]["link"] + str2 + data["items"][j]["title"] + str3 + data["items"][j]["snippet"] + str4 + data["items"][j]["link"] + str5 + data["items"][j]["displayLink"] + str6;
+                        }
+                        console.log(all);
+                        $("#cont").html(all);
+                        if (data["queries"]["nextPage"] != null && nowPage < 10) {
+                            $("#down").show();
+                        } else {
+                            $("#down").hide();
+                        }
+                        if (nowPage != 0) {
+                            $("#up").show();
+                        } else {
+                            $("#up").hide();
+                        }
+                    }
+                });
+            }
+
+            Search(str, 0);
+
+            $("#text").keydown(function (e) {
+                let curKey = e.which;
+                if (curKey == 13) {
+                    $("#go").click();
+                    return false;
+                }
+            });
+
+            $("#go").click(function () {
+                let strText = $("#text").val();
+                if (strText == "") {
+                    window.location.href = 'search.html';
+                }
+                else {
+                    window.location.href = 'search.html?q=' + strText;
+                }
+                Search(strText, 0);
+            });
+
+            $("#logo").click(function () {
+                window.location.href = 'search.html';
+            });
+            //回到顶部
+            function pageScroll() {
+                $('html,body').animate({
+                    scrollTop: 0
+                }, 1000);
+            }
+
+            $("#up").click(function () {
+                $("#loading").show();
+                nowPage--;
+                Search(str, nowPage, "");
+                pageScroll();
+            });
+
+            $("#down").click(function () {
+                $("#loading").show();
+                nowPage++;
+                Search(str, nowPage, "");
+                pageScroll();
+            });
+
+            function IsMobile() {
+                let isMobile = {
+                    Android: function () {
+                        return navigator.userAgent.match(/Android/i) ? true : false;
+                    },
+                    BlackBerry: function () {
+                        return navigator.userAgent.match(/BlackBerry/i) ? true : false;
+                    },
+                    iOS: function () {
+                        return navigator.userAgent.match(/iPhone|iPad|iPod/i) ? true : false;
+                    },
+                    Windows: function () {
+                        return navigator.userAgent.match(/IEMobile/i) ? true : false;
+                    },
+                    any: function () {
+                        return (isMobile.Android() || isMobile.BlackBerry() || isMobile.iOS() || isMobile.Windows());
+                    }
+                };
+
+                return isMobile.any(); //是移动设备
+            }
+
+            let mobile_flag = IsMobile();
+            if (mobile_flag) {
+                $("#mho").attr("style", "font-size: 2em;text-align: center;");
+            }
+        })
+    </script>
+</head>
+<body>
+<div class="site-search">
+    <div id="search">
+        <input type="text" name="s" class="input" placeholder="输入关键字搜索" id="text"/>
+        <button type="button"  class="btn" id="go">搜索</button>
+    </div>
+
+    <div id="cont">
+    </div>
+</div>
+<div>
+    <table>
+        <tbody>
+        <td>
+            <a herf="/s?q=" id="up" style="text-align:left"><span style="display:block;margin-left:53px">上一页</span></a>
+        </td>
+
+        <td>
+            <a herf="/s?q=" id="down" style="text-align:left"><span style="display:block;margin-left:53px">下一页</span></a>
+        </td>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
