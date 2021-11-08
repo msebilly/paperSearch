@@ -1573,7 +1573,7 @@
                             all = all + str1 + data["items"][j]["link"] + str2 + data["items"][j]["title"] + str3 + data["items"][j]["snippet"] + str4 + data["items"][j]["link"] + str5 + data["items"][j]["displayLink"] + str6;
                         }
 
-                        if(json.hasOwnProperty("error")){
+                        if(data.hasOwnProperty("error")){
                             all = all + "Quota exceeded for quota metric 'Queries' and limit 'Queries per day' of service";
                         }
 
